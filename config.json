@@ -1,4 +1,23 @@
 {
   "version": 1,
-  "deployAliases": {}
+  "deployAliases": {
+    "counter_app": {
+      "networkId": "testnet",
+      "url": "https://api.minascan.io/node/devnet/v1/graphql",
+      "keyPath": "keys/counter_app.json",
+      "feepayerKeyPath": "C:\\Users\\user/.cache/zkapp-cli/keys/account1.json",
+      "feepayerAlias": "account1",
+      "fee": "0.1",
+      "smartContract": "Add"
+    },
+    "incrementsecret": {
+      "networkId": "testnet",
+      "url": "https://api.minascan.io/node/devnet/v1/graphql",
+      "keyPath": "keys/incrementsecret.json",
+      "feepayerKeyPath": "C:\\Users\\user/.cache/zkapp-cli/keys/account1.json",
+      "feepayerAlias": "account1",
+      "fee": "0.1",
+      "smartContract": "IncrementSecret"
+    }
+  }
 }

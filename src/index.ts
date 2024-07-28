@@ -1,3 +1,4 @@
-import { Add } from './Add.js';
 
-export { Add };
+import { IncrementSecret } from './IncrementSecret.js';
+
+export { IncrementSecret };
