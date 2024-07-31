@@ -1,5 +1,5 @@
 import { IncrementSecret } from './IncrementSecret.js';
-import { Field, Mina, PrivateKey, AccountUpdate, CircuitString, Character } from 'o1js';
+import { Field, Mina, PrivateKey, AccountUpdate, CircuitString, Character, Struct } from 'o1js';
 import PCAPNGParser from 'pcap-ng-parser';
 import fs from 'fs';
 import path from 'path';
@@ -110,6 +110,11 @@ function processPacketData(packetDataList: string[]): CircuitString[] {
   return result;
 }
 
+class Data extends Struct({x: Field, y: Field}){
+}
+
+
+
 
 async function runMinaOperations() {
   console.log('Starting blockchain operations');
@@ -130,49 +135,22 @@ async function runMinaOperations() {
   let dataList :CircuitString[] = processPacketData(packetDataList);
 
   const zkAppInstance = new IncrementSecret(zkAppAddress);
+  
   console.log('Deploying zkApp...');
 
 
   const str1 = CircuitString.fromString('abc..xyz');
-  CircuitString.toFields(str1)
+  console.log(CircuitString.toFields(str1))
   
   const deployTxn1 = await Mina.transaction(deployerAccount, async () => {
     AccountUpdate.fundNewAccount(deployerAccount);
     await zkAppInstance.deploy();
-    await zkAppInstance.string()
+    // await zkAppInstance.assertData(str1)
 
   });
   await deployTxn1.prove();
   await deployTxn1.sign([deployerKey, zkAppPrivateKey]).send();
 
-
-
-  // const deployTxn2 = await Mina.transaction(deployerAccount, async () => {
-  //   AccountUpdate.fundNewAccount(deployerAccount);
-  //   await zkAppInstance.deploy();
-  //   await zkAppInstance.initState(salt, Field(750));
-
-  // });
-  // await deployTxn2.prove();
-  // await deployTxn2.sign([deployerKey, zkAppPrivateKey]).send();
-
-  // const num0 = zkAppInstance.x.get();
-  // console.log('State after init:', num0.toString());
-
-  // console.log('Incrementing secret...');
-  // const deployTxn3 = await Mina.transaction(senderAccount, async () => {
-  //   await zkAppInstance.incrementSecret(salt, Field(750));
-  // });
-  // await deployTxn3.prove();
-  // await deployTxn3.sign([senderKey]).send();
-
-  // const num1 = zkAppInstance.x.get();
-  // const string1 = zkAppInstance.y.get();
-
-  // console.log('State after txn1:', num1.toString());
-  // console.log('State after txn2:', string1.toString());
-
-  // console.log('Blockchain operations completed');
 }
 
 
