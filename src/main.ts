@@ -1,10 +1,10 @@
-import { IncrementSecret } from './IncrementSecret.js';
+import { checkGuilty } from './checkGuilty.js';
 import { Field, Mina, PrivateKey, AccountUpdate, CircuitString, Character, Struct } from 'o1js';
 import PCAPNGParser from 'pcap-ng-parser';
 import fs from 'fs';
 import path from 'path';
 
-const pcapFilePath = path.join('C:', 'Users', 'user', 'Desktop', 'new.pcapng');
+const pcapFilePath = path.join('C:', 'Users', 'user', 'Desktop', 'none.pcapng');
 const packetDataList: string[] = [];
 
 interface Packet {
@@ -18,44 +18,45 @@ function wait(ms: any) {
   }
 
 let lastStoredPacket: { srcIp: string, dstIp: string, srcPort: number | string, dstPort: number | string } | null = null;
-function analyzePacket(packet: Packet){
-    try {
-      const { data, timestampHigh, timestampLow } = packet;
-      const timestamp = new Date((timestampHigh * 2 ** 32 + timestampLow) / 1000);
-  
-      if (data.length < 14) return;
-      const ethType = data.readUInt16BE(12);
-      if (ethType !== 0x0800) return;
-  
-      if (data.length < 34) return;
-      const ipHeaderStart = 14;
-      const ipHeader = data.slice(ipHeaderStart, ipHeaderStart + 20);
-  
-      const srcIp = Array.from(ipHeader.slice(12, 16)).map(byte => byte.toString(10)).join('.');
-      const dstIp = Array.from(ipHeader.slice(16, 20)).map(byte => byte.toString(10)).join('.');
-  
-      const protocol = ipHeader[9];
-      let srcPort: number | string = 'Unknown', dstPort: number | string = 'Unknown';
-      if (protocol === 6 && data.length >= ipHeaderStart + 34) {
-        srcPort = data.readUInt16BE(ipHeaderStart + 20);
-        dstPort = data.readUInt16BE(ipHeaderStart + 22);
-      } else if (protocol === 17 && data.length >= ipHeaderStart + 28) {
-        srcPort = data.readUInt16BE(ipHeaderStart + 20);
-        dstPort = data.readUInt16BE(ipHeaderStart + 22);
-      }
-  
-      const currentPacketDetails = { srcIp, dstIp, srcPort, dstPort };
-  
-      if (dstPort === 443) {
-        if (!lastStoredPacket || JSON.stringify(lastStoredPacket) !== JSON.stringify(currentPacketDetails)) {
-          packetDataList.push(`Time: ${timestamp.toISOString()}, Source IP: ${srcIp}, Destination IP: ${dstIp}, Source Port: ${srcPort}, Destination Port: ${dstPort}`);
-          lastStoredPacket = currentPacketDetails;
-        }
-      }
-    } catch (error) {
-      console.error('Error analyzing packet:', error);
+function analyzePacket(packet: Packet) {
+  try {
+    const { data, timestampHigh, timestampLow } = packet;
+    const timestamp = new Date((timestampHigh * 2 ** 32 + timestampLow) / 1000);
+
+    if (data.length < 14) return;
+    const ethType = data.readUInt16BE(12);
+    if (ethType !== 0x0800) return;
+
+    if (data.length < 34) return;
+    const ipHeaderStart = 14;
+    const ipHeader = data.slice(ipHeaderStart, ipHeaderStart + 20);
+
+    const srcIp = Array.from(ipHeader.slice(12, 16)).map(byte => byte.toString(10)).join('.');
+    const dstIp = Array.from(ipHeader.slice(16, 20)).map(byte => byte.toString(10)).join('.');
+
+    const protocol = ipHeader[9];
+    let srcPort: number | string = 'Unknown', dstPort: number | string = 'Unknown';
+    if (protocol === 6 && data.length >= ipHeaderStart + 34) {
+      srcPort = data.readUInt16BE(ipHeaderStart + 20);
+      dstPort = data.readUInt16BE(ipHeaderStart + 22);
+    } else if (protocol === 17 && data.length >= ipHeaderStart + 28) {
+      srcPort = data.readUInt16BE(ipHeaderStart + 20);
+      dstPort = data.readUInt16BE(ipHeaderStart + 22);
     }
+
+    const currentPacketDetails = { srcIp, dstIp, srcPort, dstPort };
+
+    if (dstPort === 443) {
+      if (!lastStoredPacket || JSON.stringify(lastStoredPacket) !== JSON.stringify(currentPacketDetails)) {
+        const formattedOutput = `${timestamp.toISOString()} | ${srcIp} | ${dstIp} | ${srcPort} | ${dstPort}`;
+        packetDataList.push(formattedOutput);
+        lastStoredPacket = currentPacketDetails;
+      }
+    }
+  } catch (error) {
+    console.error('Error analyzing packet:', error);
   }
+}
 
 function analyzePCAP(){
     
@@ -127,25 +128,20 @@ async function runMinaOperations() {
   const senderAccount = Local.testAccounts[1];
   const senderKey = senderAccount.key;
 
-  const salt = Field.random();
 
   const zkAppPrivateKey = PrivateKey.random();
   const zkAppAddress = zkAppPrivateKey.toPublicKey();
 
-  let dataList :CircuitString[] = processPacketData(packetDataList);
-
-  const zkAppInstance = new IncrementSecret(zkAppAddress);
+  const zkAppInstance = new checkGuilty(zkAppAddress);
   
-  console.log('Deploying zkApp...');
 
 
-  const str1 = CircuitString.fromString('abc..xyz');
-  console.log(CircuitString.toFields(str1))
+  const str1 = CircuitString.fromString("");
   
   const deployTxn1 = await Mina.transaction(deployerAccount, async () => {
     AccountUpdate.fundNewAccount(deployerAccount);
     await zkAppInstance.deploy();
-    // await zkAppInstance.assertData(str1)
+    await zkAppInstance.assertData(str1)
 
   });
   await deployTxn1.prove();
@@ -180,3 +176,8 @@ main().then(() => {
   console.error('Unhandled error in main:', error);
   process.exit(1);
 });
+
+function stringToBytecode(input: string): Uint8Array {
+  const encoder = new TextEncoder();
+  return encoder.encode(input);
+}

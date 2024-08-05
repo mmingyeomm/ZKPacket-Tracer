@@ -1,4 +1,4 @@
 
-import { IncrementSecret } from './IncrementSecret.js';
+import { checkGuilty } from './checkGuilty.js';
 
-export { IncrementSecret };
+export { checkGuilty };

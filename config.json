@@ -18,6 +18,15 @@
       "feepayerAlias": "account1",
       "fee": "0.1",
       "smartContract": "IncrementSecret"
+    },
+    "checkguilty": {
+      "networkId": "testnet",
+      "url": "https://api.minascan.io/node/devnet/v1/graphql",
+      "keyPath": "keys/checkguilty.json",
+      "feepayerKeyPath": "C:\\Users\\user/.cache/zkapp-cli/keys/account1.json",
+      "feepayerAlias": "account1",
+      "fee": "0.1",
+      "smartContract": "checkGuilty"
     }
   }
 }
