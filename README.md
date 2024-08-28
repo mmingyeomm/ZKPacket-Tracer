@@ -22,6 +22,8 @@ ZK Packet Tracer functions similarly to Wireshark on a local machine but address
 - Any scenario requiring secure, privacy-preserving monitoring
 
 ## Architecture
+![image](https://github.com/user-attachments/assets/f3ed64ef-91e0-4550-9920-e40d5a9f8483)
+
 
 The system is divided into two main components:
 
