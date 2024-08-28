@@ -56,11 +56,4 @@ The system is divided into two main components:
 
 We welcome contributions to the ZK Packet Tracer project. Please read our contributing guidelines before submitting pull requests.
 
-## License
-
-[Insert appropriate license information here]
-
-## Contact
-
-[Insert contact information or links to project communication channels]
 
